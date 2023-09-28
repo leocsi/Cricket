@@ -1,9 +1,10 @@
 import socket
 
-from light_server.light_controller.command_sender import CommandSender
+from light_controller.command_sender import CommandSender
+from exceptions.light_server_exceptions import *
 
 class Listener:
-    def Listener(self, host: str="127.0.0.1" , port: int=65432) -> None:
+    def __init__(self, host="127.0.0.1", port=65432) -> None:
         self.HOST = host
         self.PORT = port
 
@@ -22,6 +23,8 @@ class Listener:
                         if not data:
                             break
                         data = data.decode('utf-8')
-                        result = command_sender.send(data)
-
+                        try:
+                            result = command_sender.send(data)
+                        except CommandNotFoundException as e:
+                            print(e)
                     
