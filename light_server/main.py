@@ -5,7 +5,7 @@ def main():
     try:
         listener.listen()
     except Exception as e:
-        print(e.message())
+        print(e)
 
 if __name__ == '__main__':
     main()
