@@ -1,12 +1,18 @@
 from light_controller.assets import *
 from exceptions.light_server_exceptions import *
+from yeelight.transitions import lsd, pulse
+from yeelight import Flow, RGBTransition
+from yeelight.flows import lsd
 
 class Commands:
     def __init__(self):
         self.map = {
             "turn_on" : self.turn_on,
             "turn_off": self.turn_off,
-            "toggle": self.toggle
+            "toggle": self.toggle,
+            "pulse": self.pulse,
+            "lsd": self.lsd,
+            "damage": self.damage
         }
     def get_command_with_params(self, command):
         try:
@@ -23,3 +29,11 @@ class Commands:
     def toggle(self):
         return 'toggle', None
     
+    def pulse(self):
+        return 'start_flow', Flow(count=1, transitions=pulse(255, 0, 0, 50))
+    
+    def lsd(self):
+        return 'start_flow', lsd()
+    
+    def damage(self):
+        return 'start_flow', Flow(count=1, transitions=pulse(255, 0, 0, 50)+[RGBTransition(255,0,0,50,10),RGBTransition(255,0,0,200,100)])
