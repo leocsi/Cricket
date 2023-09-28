@@ -1,7 +1,11 @@
+from listener.listener import Listener
+
 def main():
-    result = "1"
-    while(result):
-        result = int(input("Light server running"))
+    listener = Listener()
+    try:
+        listener.listen()
+    except Exception as e:
+        print(e.message())
 
 if __name__ == '__main__':
     main()
