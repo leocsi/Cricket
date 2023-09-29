@@ -1,0 +1,4 @@
+name: plugins
+main: minecraft.plugins.Plugin
+version: 1.0-SNAPSHOT
+api-version: 1.15
