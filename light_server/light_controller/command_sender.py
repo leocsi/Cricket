@@ -44,6 +44,9 @@ class CommandSender:
             devices = self.all_devices
 
         for device in devices:
-            device.get_properties
-            function = device.__getattribute__(parsed_command)
-            result = function(arguments)
+            try:
+                device.get_properties
+                function = device.__getattribute__(parsed_command)
+                result = function(arguments)
+            except Exception as e:
+                print(e)
