@@ -10,16 +10,16 @@ import java.io.*;
  * plugins java plugin
  */
 public class Plugin extends JavaPlugin{
-  Socket connection;
-  PrintWriter messageSender;
+  private Socket connection;
+  public PrintWriter messageSender;
 
-  private static final Logger LOGGER=Logger.getLogger("plugins");
+  public final Logger LOGGER=Logger.getLogger("plugins");
 
   public Plugin(){
     try{
-      connection = new Socket("127.0.0.1", 65432); 
-      messageSender = new PrintWriter(connection.getOutputStream(), true);
-      LOGGER.info("HERE");
+      this.connection = new Socket("127.0.0.1", 65432); 
+      this.messageSender = new PrintWriter(connection.getOutputStream(), true);
+      LOGGER.info("Connected!");
     } catch(Exception e){
       e.printStackTrace();
     }
@@ -27,18 +27,21 @@ public class Plugin extends JavaPlugin{
 
   public void onEnable()
   {
-    messageSender.print("damage");
-    LOGGER.info("plugin enabled");
+    new EventListener(this);
   }
 
   public void onDisable()
   {
     LOGGER.info("plugin disabled");
     try{
-      messageSender.close();
-      connection.close();
+      this.messageSender.close();
+      this.connection.close();
     } catch(Exception e){
       e.printStackTrace();
     }
+  }
+
+  public PrintWriter getMessageSender(){
+    return this.messageSender;
   }
 }
