@@ -12,7 +12,10 @@ class Transcriber:
         self.stream = self.mic.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
         self.stream.start_stream()
 
-        self.assistant_client = AssistantClient()
+        try:
+            self.assistant_client = AssistantClient()
+        except Exception as e:
+            print("Couldnt connect")
 
     def listen(self):
         command = ""
@@ -27,19 +30,24 @@ class Transcriber:
                 end_position = text.find(Transcriber.END_CUE)
                 if start_position != -1:
                     if end_position == -1:
-                        command += text[start_position+len(Transcriber.START_CUE):].strip() 
+                        command = (command+ text[start_position+len(Transcriber.START_CUE):]).strip()
                         capturing = True
                     else:
-                        command += text[start_position+len(Transcriber.START_CUE):end_position].strip()
-                        print("Command: "+command)
+                        command = (command +text[start_position+len(Transcriber.START_CUE):end_position]).strip()
+                        try:
+                            self.assistant_client.send(command)
+                        except Exception as e:
+                            print("Couldnt connect")
                         command = ""
                 
                 elif capturing:
                     if end_position != -1:
-                        command += ' ' + text[:end_position].strip()
+                        command = (command + ' ' + text[:end_position]).strip()
                         capturing = False
-                        print("Command: "+command)
+                        try:
+                            self.assistant_client.send(command)
+                        except Exception as e:
+                            print("Couldnt connect")
                         command = ""
                     else:
-                        command += ' ' + text.strip()
-            command = command.strip()
+                        command = (command + ' ' + text).strip()
