@@ -3,7 +3,9 @@ class InstructionResolver:
         self.simple=["toggle"]
         self.map = {
             "lights off" : ["turn_off"],
-            "toggle" : ["toggle"]
+            "toggle" : ["toggle"],
+            "acid" : ["lsd"],
+            "lights on" : ["turn_on"]
         }
 
     def get_command_suite(self, command: str):

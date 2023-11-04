@@ -4,7 +4,7 @@ from speech_to_text.assistant.assistant_client import AssistantClient
 
 class Transcriber:
     START_CUE = "cricket"
-    END_CUE = "thanks"
+    END_CUE = "thanks" 
     def __init__(self):
         self.model = Model(r"voice_command_server/en-model")
         self.recognizer = KaldiRecognizer(self.model, 16000)
