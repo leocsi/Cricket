@@ -2,7 +2,7 @@ from light_controller.assets import *
 from exceptions.light_server_exceptions import *
 from yeelight.transitions import lsd, pulse
 from yeelight import Flow, RGBTransition
-from yeelight.flows import lsd
+from yeelight.flows import lsd, police
 
 class Commands:
     def __init__(self):
@@ -12,7 +12,8 @@ class Commands:
             "toggle": self.toggle,
             "pulse": self.pulse,
             "lsd": self.lsd,
-            "damage": self.damage
+            "damage": self.damage,
+            "police": self.police
         }
     def get_command_with_params(self, command):
         try:
@@ -37,3 +38,6 @@ class Commands:
     
     def damage(self):
         return 'start_flow', Flow(count=1, transitions=pulse(255, 0, 0, 50)+[RGBTransition(255,0,0,50,10),RGBTransition(255,0,0,200,100)])
+    
+    def police(self):
+        return 'start_flow', police()

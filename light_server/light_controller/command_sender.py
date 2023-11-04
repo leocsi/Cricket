@@ -45,8 +45,7 @@ class CommandSender:
 
         for device in devices:
             try:
-                device.get_properties
                 function = device.__getattribute__(parsed_command)
                 result = function(arguments)
             except Exception as e:
-                print(e)
+                print(e, "The exception occured when sending the command to: "+str(device))
