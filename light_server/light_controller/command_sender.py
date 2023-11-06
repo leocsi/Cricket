@@ -1,5 +1,6 @@
 import yeelight as yee
 from light_controller.commands import Commands
+from light_server.exceptions.light_server_exceptions import CommandNotFoundException
 
 class CommandSender:
     def __init__(self):
@@ -35,13 +36,17 @@ class CommandSender:
     def send(self, command: str) -> None:
         split_command = command.split()
         
-        if split_command[0] in self.all_rooms:
-            parsed_command, arguments = self.commands.get_command_with_params(split_command[1])
-            devices = self.all_rooms[split_command[0]]
-        
-        else:
-            parsed_command, arguments = self.commands.get_command_with_params(command)
-            devices = self.all_devices
+        devices = {}
+        try:
+            if split_command[0] in self.all_rooms:
+                parsed_command, arguments = self.commands.get_command_with_params(split_command[1])
+                devices = self.all_rooms[split_command[0]]
+            else:
+                parsed_command, arguments = self.commands.get_command_with_params(command)
+                devices = self.all_devices
+
+        except CommandNotFoundException as e:
+            print(e)
 
         for device in devices:
             try:
