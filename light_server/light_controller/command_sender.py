@@ -1,6 +1,6 @@
 import yeelight as yee
 from light_controller.commands import Commands
-from light_server.exceptions.light_server_exceptions import CommandNotFoundException
+from exceptions.light_server_exceptions import CommandNotFoundException
 
 class CommandSender:
     def __init__(self):
