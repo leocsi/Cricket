@@ -1,0 +1,4 @@
+yeelight
+pyOpenSSL
+pyaudio
+vosk
