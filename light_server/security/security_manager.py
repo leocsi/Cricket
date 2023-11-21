@@ -25,7 +25,7 @@ class Security:
         print("Generating CRL...")
         generate_crl()
 
-        generate_cert("server",CN="Server Certificate")
+        generate_cert("server", "server", CN="Server Certificate")
         print("Server certificate generated!")
 
         if input("Would you like to create a client certificate? (Y/N)") == "Y":
@@ -40,7 +40,7 @@ class Security:
         :param name: Common Name of the new certificate
         """
 
-        generate_cert(filename, CN=name)
+        generate_cert(filename, 'server', CN=name)
         print("Client certificate generated!")
 
 def verify_cert(conn: Connection, cert: crypto.X509, error: int, depth: int, ret: int) -> bool:
