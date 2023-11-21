@@ -3,11 +3,11 @@ from os import path
 from OpenSSL.SSL import Connection
  
 CERT_PATH = "light_server/security/certs/"
-FILES = ["server.cert","server.pkey","client.pkey","client.cert", "crl"]
-
+'''This is where certificates are stored'''
+FILES = ['ca.cert', 'ca.pkey', "server.cert","server.pkey", "crl"]
+'''List of necessary files to check for.'''
 class Security:
-    """Class responsible for ensuring necessary certificates are present.
-    Assumes the existence of a local CA authority."""
+    """Class responsible for ensuring necessary certificates are present."""
     def missing_certs(self) -> bool:
         """This function checks if any of the necessary files are missing.
         
@@ -22,16 +22,25 @@ class Security:
         """This method generates the required certificate files for the application to run. 
         """
 
+        print('Generating CA...')
+        generate_ca()
+        print('CA Generated!')
+
         print("Generating CRL...")
         generate_crl()
+        print('CRL Generated!')
 
+        print("Generating Server Certificate...")
         generate_cert("server", "server", CN="Server Certificate")
         print("Server certificate generated!")
 
         if input("Would you like to create a client certificate? (Y/N)") == "Y":
+            print("Generating Server Certificate...")
             certname = input("New certificate Common Name: ")
             certfile = input("New certificate file name: ")
             self.new_client(certfile, certname)
+            print("Server certificate generated!")
+
 
     def new_client(self, filename:str, name:str) -> None:
         """Wrapper method to generate a new client certificate.

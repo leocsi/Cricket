@@ -1,5 +1,5 @@
 """Module that supplies security related features, mainly 
-related to TLS encryption. Methods assume the existence of a local CA."""
+related to TLS encryption. """
 
 
 from OpenSSL import crypto
@@ -8,6 +8,28 @@ from datetime import datetime
 
 CERT_PATH = "light_server/security/certs/"
 """Directory where certificates for the server are stored"""
+DIGEST = 'sha512'
+'''The digest method to sign data is SHA512'''
+
+
+def generate_ca(C: str="HU", L: str="Budapest",O: str="Cricket", OU: str="Cricket WebServices",CN: str="Cricket Root CA"):
+
+    key = new_private_key(4096)
+    req = new_cert_request(key, DIGEST, 
+                            C = C, 
+                            L = L,
+                            O = O,
+                            OU = OU,
+                            CN = CN)
+    
+    cert = new_cert(req, req, key, 1, 0, 60*60*24*365, DIGEST, 'ca')
+
+    if not os.path.isdir(CERT_PATH):
+        os.mkdir(CERT_PATH)
+
+    open(f"{CERT_PATH}ca.cert",'w').write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
+    open(f"{CERT_PATH}ca.pkey",'w').write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key, cipher="aes-256-cbc", passphrase=set_passwd).decode("utf-8"))
+
 
 def generate_cert(file_name: str, cert_type: str, **subject: "dict[str:str]") -> None:
     """Generates a new certificate according to given attributes, assumes the existence of a local CA
@@ -26,7 +48,7 @@ def generate_cert(file_name: str, cert_type: str, **subject: "dict[str:str]") ->
         cert_subject.update({attr : value})
 
     req = new_cert_request(key, **cert_subject)
-    cert = new_cert(req, ca, cakey, random.randint(1, 50000), 0, 60*60*24*365, 'sha512', cert_type)
+    cert = new_cert(req, ca, cakey, random.randint(1, 50000), 0, 60*60*24*365, DIGEST, cert_type)
     
     open(f"{CERT_PATH}{file_name}.cert",'w').write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
     open(f"{CERT_PATH}{file_name}.pkey",'w').write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key, cipher="aes-256-cbc", passphrase=set_passwd).decode("utf-8"))
@@ -103,11 +125,11 @@ def new_cert_request(pkey: crypto.PKey, digest: str="sha512", **subject:"dict[st
     return req
 
 
-def new_cert(req: crypto.X509Req, issuerCert: crypto.X509, issuerKey: crypto.PKey, serial: int, notBefore: int, notAfter: int, digest: str="sha512", cert_type: str='client'):
+def new_cert(req: crypto.X509Req, issuerCert: crypto.X509 | crypto.X509Req, issuerKey: crypto.PKey, serial: int, notBefore: int, notAfter: int, digest: str="sha512", cert_type: str='client'):
     """Generate new X509v3 certificate.
 
     :param req: Certificate request to use
-    :param issuerCert: CA issuer that should sign the request
+    :param issuerCert: CA issuer that should sign the request, can be a request if a self signed certificate is being generated
     :param issuerKey: Private key of CA
     :param serial: Serial number of new cert
     :param notBefore: Start of validity date for certificate (In seconds, starting from current time)
@@ -128,10 +150,8 @@ def new_cert(req: crypto.X509Req, issuerCert: crypto.X509, issuerKey: crypto.PKe
     
     cert.set_subject(req.get_subject())
     cert.set_pubkey(req.get_pubkey())
-
-    extensions = get_extenion_suites(cert, issuerCert, cert_type)
-    for suite in extensions:
-        cert.add_extensions(suite)
+    
+    cert = add_required_extensions(cert, issuerCert, cert_type)
 
     cert.sign(issuerKey, digest)
     return cert
@@ -172,15 +192,13 @@ def get_asn1(time: datetime=datetime.now().utcnow()) -> str:
     time = f"{time.year}{time.month:02d}{time.day:02d}{time.hour:02d}{time.minute:02d}{time.second:02d}Z"
     return time
 
-def get_extenion_suites(subject: crypto.X509, issuer: crypto.X509, cert_type: str) -> 'list[list[crypto.X509Extension]]':
-    '''Determine the required extensions depending on the type of certificate requested
-    One suite of extensions means the extensions CAN be added at the same time, multiple suites SHOULD be added separately.
-    The required order of adding the extensions is taken into account, hence the returned list is organised in priority order.
+def add_required_extensions(subject: crypto.X509, issuer: crypto.X509 | crypto.X509Req, cert_type: str) -> 'list[list[crypto.X509Extension]]':
+    '''Determine the required extensions depending on the type of certificate requested, and add them to the certificate
     
     :param subject: certificate being created
-    :param issuer: issuer of the certificate
+    :param issuer: issuer of the certificate, can be a request if a self signed certificate is being generated
     :param cert_type: type of the requested certificate (client, server, ca)
-    :returns: A list of suites(lists) containing ``X509Extension`` objects'''
+    :returns: The ``X509`` certificate with the newly added extensions'''
 
     extension_suites = [[]]
     if cert_type == 'client':
@@ -191,6 +209,8 @@ def get_extenion_suites(subject: crypto.X509, issuer: crypto.X509, cert_type: st
         extension_suites[0].append(crypto.X509Extension(b'authorityKeyIdentifier', False, b"keyid:always,issuer:always",issuer=issuer))
         extension_suites[0].append(crypto.X509Extension(b'keyUsage', True, b"digitalSignature,nonRepudiation,keyEncipherment"))
         extension_suites[0].append(crypto.X509Extension(b'extendedKeyUsage',False, b"clientAuth, emailProtection"))
+        subject.add_extensions(extension_suites[0])
+
     elif cert_type == 'server':
         extension_suites[0].append(crypto.X509Extension(b'basicConstraints', False, b'CA:false'))
         extension_suites[0].append(crypto.X509Extension(b'nsCertType', False, b'server'))
@@ -199,11 +219,16 @@ def get_extenion_suites(subject: crypto.X509, issuer: crypto.X509, cert_type: st
         extension_suites[0].append(crypto.X509Extension(b'authorityKeyIdentifier', False, b"keyid:always,issuer:always",issuer=issuer))
         extension_suites[0].append(crypto.X509Extension(b'keyUsage', True, b"digitalSignature,keyEncipherment"))
         extension_suites[0].append(crypto.X509Extension(b'extendedKeyUsage',False, b"serverAuth"))
+        subject.add_extensions(extension_suites[0])
+
     elif cert_type =='ca':
         extension_suites[0].append(crypto.X509Extension(b'subjectKeyIdentifier', False, b"hash", subject=subject))
+        subject.add_extensions(extension_suites[0])
+
         extension_suites.append([])
         extension_suites[1].append(crypto.X509Extension(b'basicConstraints', True, b'CA:true'))
-        extension_suites[1].append(crypto.X509Extension(b'authorityKeyIdentifier', False, b"keyid:always,issuer:always",issuer=issuer))
+        extension_suites[1].append(crypto.X509Extension(b'authorityKeyIdentifier', False, b"keyid:always,issuer:always",issuer=subject))
         extension_suites[1].append(crypto.X509Extension(b'keyUsage', True, b"digitalSignature,cRLSign,keyCertSign"))
+        subject.add_extensions(extension_suites[1])
 
-    return extension_suites  
+    return subject  
