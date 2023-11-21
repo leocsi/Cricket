@@ -52,7 +52,7 @@ class Listener:
         ctx.set_verify(SSL.VERIFY_PEER|SSL.VERIFY_FAIL_IF_NO_PEER_CERT, verify_cert)
         ctx.use_privatekey_file("light_server/security/certs/server.pkey",crypto.FILETYPE_PEM)
         ctx.use_certificate_file("light_server/security/certs/server.cert",crypto.FILETYPE_PEM)
-        ctx.load_verify_locations("light_server/security/certs/ca_chain.cert")
+        ctx.load_verify_locations("light_server/security/certs/ca.cert")
 
         server = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
         server.bind((self.HOST, self.PORT))
