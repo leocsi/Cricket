@@ -59,12 +59,10 @@ def verify_cert(conn: Connection, cert: crypto.X509, error: int, depth: int, ret
         crl = crypto.load_crl(crypto.FILETYPE_PEM, open(f"light_server/security/certs/crl",'rb').read())
         store.add_crl(crl)
         
-        if hex(cert.get_serial_number())[2:] in [str(revoked.get_serial(),"utf-8").lower() for revoked in crl.get_revoked()]:
-            return False
-  
-        inter = crypto.load_certificate(crypto.FILETYPE_PEM, open("light_server/security/certs/inter.cert","rb").read())
-        store.add_cert(inter)
-        
+        if crl.get_revoked():
+            if hex(cert.get_serial_number())[2:] in [str(revoked.get_serial(),"utf-8").lower() for revoked in crl.get_revoked()]:
+                return False
+          
         ca = crypto.load_certificate(crypto.FILETYPE_PEM, open("light_server/security/certs/ca.cert","rb").read())
         store.add_cert(ca)
 
