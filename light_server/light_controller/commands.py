@@ -1,4 +1,4 @@
-from light_controller.assets import *
+from light_controller.assets.flows import *
 from exceptions.light_server_exceptions import *
 from yeelight.transitions import lsd, pulse
 from yeelight import Flow, RGBTransition
@@ -13,8 +13,10 @@ class Commands:
             "pulse": self.pulse,
             "lsd": self.lsd,
             "damage": self.damage,
-            "police": self.police
+            "police": self.police,
+            'aurora_borealis': self.aurora_borealis
         }
+        
     def get_command_with_params(self, command):
         try:
             return self.map[command]()
@@ -41,3 +43,6 @@ class Commands:
     
     def police(self):
         return 'start_flow', police()
+    
+    def aurora_borealis(self):
+        return 'start_flow', aurora_borealis()
