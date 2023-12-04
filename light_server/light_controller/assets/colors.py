@@ -38,11 +38,11 @@ class Color:
 
 class ColorStore:
     COLORS = {
-        'blue' : Color(hex='1674F0'),
-        'sky_blue' : Color(hex='00A4F0'),
-        'turquoise' : Color(hex='00FFBC'),
+        'blue' : Color(hex='0000FF'),
+        'sky_blue' : Color(hex='1674F0'),
+        'turquoise' : Color(hex='008500'),
         'mint' : Color(hex='0AEF45'),
-        'aqua_green': Color(hex='16F096')
+        'aqua_green': Color(hex='00A1FF')
     }
 
     PALETTES = {
