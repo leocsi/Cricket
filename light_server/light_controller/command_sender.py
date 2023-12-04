@@ -37,20 +37,23 @@ class CommandSender:
         split_command = command.split()
         
         devices = {}
+        device_arguments = []
         try:
             if split_command[0] in self.all_rooms:
-                parsed_command, arguments = self.commands.get_command_with_params(split_command[1])
                 devices = self.all_rooms[split_command[0]]
+                command = split_command[1]
             else:
-                parsed_command, arguments = self.commands.get_command_with_params(command)
                 devices = self.all_devices
-
+            for i in range(len(devices)):
+                parsed_command, arguments = self.commands.get_command_with_params(command)
+                device_arguments.append(arguments)
+            
         except CommandNotFoundException as e:
             print(e)
 
-        for device in devices:
+        for n, device in enumerate(devices):
             try:
                 function = device.__getattribute__(parsed_command)
-                result = function(arguments)
+                result = function(device_arguments[n])
             except Exception as e:
                 print(e, "The exception occured when sending the command to: "+str(device))
