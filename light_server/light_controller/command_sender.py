@@ -1,5 +1,5 @@
 import yeelight as yee
-from light_controller.commands import Commands
+from light_controller.commands import CommandContext
 from exceptions.light_server_exceptions import CommandNotFoundException
 
 class CommandSender:
@@ -7,7 +7,6 @@ class CommandSender:
         self.all_devices = []
         self.all_rooms = {}
         self.device_info = self.__load_devices()
-        self.commands = Commands()
 
     def __load_devices(self) -> dict:
         with open("light_server/configured_devices.conf","r") as file:
@@ -37,23 +36,25 @@ class CommandSender:
         split_command = command.split()
         
         devices = {}
-        device_arguments = []
         try:
             if split_command[0] in self.all_rooms:
                 devices = self.all_rooms[split_command[0]]
                 command = split_command[1]
             else:
                 devices = self.all_devices
-            for i in range(len(devices)):
-                parsed_command, arguments = self.commands.get_command_with_params(command)
-                device_arguments.append(arguments)
+
+            resolved_command = CommandContext(command)
             
         except CommandNotFoundException as e:
             print(e)
 
-        for n, device in enumerate(devices):
+        for device in devices:
             try:
-                function = device.__getattribute__(parsed_command)
-                result = function(device_arguments[n])
+
+                function = device.__getattribute__(resolved_command.command)
+                result = function(resolved_command.flow)
+                
+                if resolved_command.trueRandom:
+                    resolved_command.new_flow()
             except Exception as e:
                 print(e, "The exception occured when sending the command to: "+str(device))
