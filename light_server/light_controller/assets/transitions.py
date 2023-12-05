@@ -46,18 +46,13 @@ class TransitionModifiers:
                 np.put(intervals, e, i+ diff)
         for i in range(n_transitions):
             transitions[i].set_duration(intervals[i])
-        
+          
         return transitions
     
     @staticmethod
     def shuffleTransitions(transitions: 'list[FlowTransition]') ->'list[FlowTransition]':
         random.shuffle(transitions)
         return transitions
-
-
-transitions = [
-    TemperatureTransition(1700)
-]
 
 def transitionSuiteFromPalette(palette_name: str) -> list[ColorTransition]:
     return [ColorTransition(color.color) for color in ColorStore.get_palette(palette_name)]
