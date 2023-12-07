@@ -36,8 +36,29 @@ class Commands:
     
     @staticmethod
     def aurora_borealis():
-        return 'start_flow:1:0', aurora_borealis()
+        return 'start_flow:1:0', aurora_borealis
 
+    @staticmethod
+    def darker():
+        return 'set_adjust', 'decrease', 'bright'
+    
+    @staticmethod
+    def brighter():
+        return 'set_adjust', 'increase', 'bright'
+
+    @staticmethod
+    def get_state():
+        pass
+    
+    @staticmethod
+    def colder():
+        return 'set_adjust', 'increase', 'ct'
+    
+    @staticmethod
+    def warmer():
+        return 'set_adjust', 'decrease', 'ct'
+
+    
     MAP = {
         "turn_on:" : turn_on,
         "turn_off": turn_off,
@@ -46,20 +67,24 @@ class Commands:
         "lsd": lsd,
         "damage": damage,
         "police": police,
-        'aurora_borealis': aurora_borealis
+        'aurora_borealis': aurora_borealis,
+        'brighter': brighter,
+        'darker': darker,
+        'warmer': warmer,
+        'colder': colder
     }
 
     @staticmethod
-    def get_command_with_params(command):
+    def get_command_with_params(command, state=None):
         try:
             return Commands.MAP[command]()
         except KeyError:
             raise CommandNotFoundException(command)
 
 class CommandContext:
-    def __init__(self, name):
+    def __init__(self, name, state=None):
         self.name = name
-        self.command, self.flow = Commands.get_command_with_params(name)
+        self.command, *self.args = Commands.get_command_with_params(name, state=None)
 
         self.command = self.parse_execution_mode(self.command)
     
@@ -76,8 +101,3 @@ class CommandContext:
                 self.__setattr__(attr, bool(int(command_modes[i])))
 
         return command_name
-    
-    def new_flow(self):
-        if not self.trueRandom:
-            raise Exception()
-        _, self.flow = Commands.get_command_with_params(self.name)

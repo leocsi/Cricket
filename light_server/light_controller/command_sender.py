@@ -50,11 +50,14 @@ class CommandSender:
 
         for device in devices:
             try:
-
                 function = device.__getattribute__(resolved_command.command)
-                result = function(resolved_command.flow)
-                
+                if resolved_command.stateful:
+                    pass # Placeholder for potential stateful commands in the future
+
                 if resolved_command.trueRandom:
-                    resolved_command.new_flow()
+                    result = function(resolved_command.args[0]())
+                else:
+                    result = function(*resolved_command.args)
+                
             except Exception as e:
                 print(e, "The exception occured when sending the command to: "+str(device))
