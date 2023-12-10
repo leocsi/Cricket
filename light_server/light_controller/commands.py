@@ -77,7 +77,10 @@ class Commands:
     @staticmethod
     def get_command_with_params(command, state=None):
         try:
-            return Commands.MAP[command]()
+            if not state:
+                return Commands.MAP[command]()
+            else:
+                return Commands.MAP[command](state)
         except KeyError:
             raise CommandNotFoundException(command)
 
