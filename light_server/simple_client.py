@@ -30,32 +30,37 @@ def verify_cb(conn: SSL.Connection, cert: crypto.X509, error: int, depth: int, r
         print(e)
         return False
 
-ctx = SSL.Context(SSL.TLSv1_2_METHOD)
-ctx.set_verify(SSL.VERIFY_PEER, verify_cb) # Demand a certificate
-ctx.use_privatekey_file ("light_server/security/certs/client.pkey")
-ctx.use_certificate_file("light_server/security/certs/client.cert")
-ctx.load_verify_locations("light_server/security/certs/ca.cert")
 
-retry_count, retry_limit = 0, 10
-while True:
-    try:
-        sock = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
-        sock.connect((HOST, PORT))
-        print('Connected!')
-        retry_count = 0
-        command = ""
-        while command != "x":
-            command = input('Type command: ')
-            sock.sendall(bytes(command, "utf-8"))
-    except Exception:
-        if retry_count == 0:
-            print('Something went wrong while sending the last command.')
-        if retry_count < retry_limit:
-            if retry_count % 2 == 0:
-                print(f"Retrying connection... ({retry_count}/{retry_limit})")
-            time.sleep(3)
-            retry_count =+ 1
-            continue
-        else:
-            print("Server unavailable.")
-            break
+def client_main():
+    ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    ctx.set_verify(SSL.VERIFY_PEER, verify_cb) # Demand a certificate
+    ctx.use_privatekey_file ("light_server/security/certs/client.pkey")
+    ctx.use_certificate_file("light_server/security/certs/client.cert")
+    ctx.load_verify_locations("light_server/security/certs/ca.cert")
+
+    retry_count, retry_limit = 0, 10
+    while True:
+        try:
+            sock = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+            sock.connect((HOST, PORT))
+            print('Connected!')
+            retry_count = 0
+            command = ""
+            while command != "x":
+                command = input('Type command: ')
+                sock.sendall(bytes(command, "utf-8"))
+                
+        except Exception:
+            if retry_count == 0:
+                print('Something went wrong with the server.')
+            if retry_count <= retry_limit:
+                if retry_count % 2 == 0:
+                    print(f"Retrying connection... ({retry_count}/{retry_limit})")
+                retry_count += 1
+                continue
+            else:
+                print("Server unavailable.")
+                break
+
+if __name__ == '__main__':
+    client_main()
