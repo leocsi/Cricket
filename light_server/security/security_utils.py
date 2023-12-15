@@ -69,12 +69,17 @@ def generate_crl() -> None:
     open(f"{CERT_PATH}crl",'w').write(crypto.dump_crl(crypto.FILETYPE_PEM,crl).decode("utf-8"))
 
 
-def revoke_cert(cert:crypto.X509, reason: bytes = b"unspecified") -> None:
-    """Revokes a certificate, adding it to the CRL.
+def revoke_cert(cert:crypto.X509 = None, reason:bytes= None) -> None:
+    """Revokes a certificate in a specified file, adding it to the CRL.
 
     :param cert: certificate to revoke
     :param reason: reason of revocation
     """
+    if not cert:
+        certfile = input('Please specify cert name: ')
+        cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(f"{CERT_PATH}{certfile}.cert","rb").read())
+    if not reason:
+        reason = bytes(input('Please specify reason for revocation (has to be a valid CRL reason): '), 'utf-8')
 
     crl = crypto.load_crl(crypto.FILETYPE_PEM, open(f"{CERT_PATH}crl",'rb').read())
     ca = crypto.load_certificate(crypto.FILETYPE_PEM, open(f"{CERT_PATH}ca.cert","rb").read())
